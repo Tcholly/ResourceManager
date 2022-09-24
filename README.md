@@ -29,6 +29,6 @@ var_name : type : value;
 
 ## TODO
 
-[x] Export file to hpp
-[ ] Export textures and full files instead of the path only
-[ ] Export file to dll
+- [x] Export file to hpp
+- [ ] Export textures and full files instead of the path only
+- [ ] Export file to dll
