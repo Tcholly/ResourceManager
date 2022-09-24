@@ -92,28 +92,28 @@ std::string trim(const std::string& str)
 
 std::string GetOneLineContent(std::stringstream& ss)
 {
-	std::string temp;
+	std::string result;
 	std::string line;
 	while (std::getline(ss, line))
 	{
 		line = trim(line);
-		temp += line;
+
+		std::stringstream finalStream(line);
+		bool inString = false;
+		char ch;
+		while (finalStream.get(ch))
+		{
+			if (ch == '\"')
+				inString = !inString;
+			else if ((ch == ' ' || ch == '\t') && !inString)
+				continue;
+			else if (ch == '=' && !inString)
+				break;
+
+			result += ch;
+		}
 	}
 
-	std::stringstream finalStream(temp);
-
-	std::string result;
-	bool inString = false;
-	char ch;
-	while (finalStream.get(ch))
-	{
-		if (ch == '\"')
-			inString = !inString;
-		else if (ch == ' ' && !inString)
-			continue;
-
-		result += ch;
-	}
 
 	return result;
 }
@@ -198,6 +198,12 @@ Namespace* GetNamespace(std::stringstream& ss, std::string name)
 	return result;
 }
 
+void DefineConstant(std::ofstream& out, std::string name, std::string value)
+{
+	out << "#ifndef " << name << '\n';
+	out << "\t#define " << name << ' ' << value << '\n';
+	out << "#endif\n";
+}
 
 void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 {
@@ -206,6 +212,12 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 		out << "// This file is auto generated\n";
 		out << "#pragma once\n\n";
 		out << "#include <string>\n\n";
+
+		DefineConstant(out, "PI", "3.14159265358979323846f");
+		DefineConstant(out, "E",  "2.71828182845904523536f");
+
+		out << '\n';
+
 	}
 	else
 	{
@@ -228,7 +240,7 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 	}
 
 	if (level > 0)
-		out << std::string(level - 1, '\t') << "} // " << root->name << "\n\n";
+		out << std::string(level - 1, '\t') << "} // namespace " << root->name << "\n\n";
 
 }
 

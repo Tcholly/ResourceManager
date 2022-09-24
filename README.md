@@ -20,7 +20,9 @@ Namespace_name
 	}
 	
 	var_name : type : value;
-	var_name : type : value;
+	var_name : type : value; = Comment
+	
+	= This is a line comment
 }
 
 var_name : type : value;
@@ -30,5 +32,6 @@ var_name : type : value;
 ## TODO
 
 - [x] Export file to hpp
+- [ ] Add support for more complex types 
 - [ ] Export textures and full files instead of the path only
 - [ ] Export file to dll
