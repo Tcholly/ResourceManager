@@ -1,0 +1,16 @@
+
+Textures 
+{
+	Filepaths
+	{
+		DOG : string : "Assets/Dog.png";
+	}
+}
+
+Globals
+{
+	Vars
+	{
+		TARGET_FPS : int : 60;
+	}
+}
