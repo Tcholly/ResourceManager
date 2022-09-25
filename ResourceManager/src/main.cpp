@@ -6,6 +6,8 @@
 #include <fmt/format.h>
 
 #include "Utils/Logger.h"
+#include "Platforms/PlatformManager.h"
+#include "Namespace.h"
 
 enum EndingType
 {
@@ -34,30 +36,6 @@ template <> struct fmt::formatter<EndingType> : formatter<string_view>
 			defautl: break;
 		}
 		return formatter<string_view>::format(name, ctx);
-	}
-};
-
-struct Expr
-{
-	std::string name;
-	std::string type;
-	std::string value;
-};
-
-struct Namespace
-{
-	std::string name;
-	std::vector<Expr> exprs;
-	std::vector<Namespace*> namespaces;
-
-	~Namespace()
-	{
-		for (auto ns : namespaces)
-			delete ns;
-
-		exprs.clear();
-		namespaces.clear();
-		name = "";
 	}
 };
 
@@ -113,7 +91,6 @@ std::string GetOneLineContent(std::stringstream& ss)
 			result += ch;
 		}
 	}
-
 
 	return result;
 }
@@ -198,27 +175,47 @@ Namespace* GetNamespace(std::stringstream& ss, std::string name)
 	return result;
 }
 
-void DefineConstant(std::ofstream& out, std::string name, std::string value)
+bool DoesNamespaceContainsType(Namespace* root, const std::string& type)
+{
+	for (auto ns : root->namespaces)
+		if (DoesNamespaceContainsType(ns, type))
+			return true;
+
+	for (auto expr : root->exprs)
+		if (expr.type == type)
+			return true;
+
+	return false;
+}
+
+void DefineConstantHpp(std::ofstream& out, std::string name, std::string value)
 {
 	out << "#ifndef " << name << '\n';
 	out << "\t#define " << name << ' ' << value << '\n';
 	out << "#endif\n";
 }
 
+void InitHppFile(std::ofstream& out, Namespace* root)
+{
+	out << "// This file is auto generated\n";
+	out << "#pragma once\n\n";
+
+	if (DoesNamespaceContainsType(root, "string"))
+		out << "#include <string>\n\n";
+
+	if (DoesNamespaceContainsType(root, "color"))
+		out << PlatformManager::DefineColor() << '\n';
+
+	DefineConstantHpp(out, "PI", "3.14159265358979323846f");
+	DefineConstantHpp(out, "E",  "2.71828182845904523536f");
+
+	out << '\n';
+}
+
 void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 {
 	if (level == 0)
-	{
-		out << "// This file is auto generated\n";
-		out << "#pragma once\n\n";
-		out << "#include <string>\n\n";
-
-		DefineConstant(out, "PI", "3.14159265358979323846f");
-		DefineConstant(out, "E",  "2.71828182845904523536f");
-
-		out << '\n';
-
-	}
+		InitHppFile(out, root);
 	else
 	{
 		out << std::string(level - 1, '\t') << "namespace " << root->name << '\n';
@@ -232,11 +229,13 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 	{
 		out << std::string(level, '\t');
 		out << "const ";
+
 		if (expr.type == "string")
-			out << "std::string ";
-		else
-			out << expr.type << ' ';
-		out << expr.name << " = " << expr.value << ";\n";  
+			expr.type = "std::string";
+		else if (expr.type == "color")
+			expr = PlatformManager::FormatColor(expr);	
+
+		out << expr.type << ' ' << expr.name << " = " << expr.value << ";\n";  
 	}
 
 	if (level > 0)
@@ -272,7 +271,9 @@ void Usage(std::string program_name)
 	std::cout << "USAGE:" << '\n';
 	std::cout << "       " << program_name << " <FILE> [OPTIONS]\n";
 	std::cout << "OPTIONS:\n";
-	std::cout << "       -o   --output  <file>    Uses the given path to output the exported hpp code\n";
+	std::cout << "       -o   --output  <file>       Uses the given path to output the exported hpp code\n";
+	std::cout << "       -p   --platform <platform>  Uses the given platform for types definition, available platforms:\n";
+	std::cout << "                                   rl, raylib\n"; 
 }
 
 
@@ -281,10 +282,20 @@ int main(int argc, char** argv)
 	Args args = {argc, argv};
 	std::string program = GetNextArg(args);
 	std::string file = GetNextArg(args);
+
+	if (file == "-h" || file == "--help")
+	{
+		Usage(program);
+		exit(1);
+	}
+
+
 	std::string outputFile = "out.hpp";
 
+	PlatformManager::SetPlatform(Platform::NONE);
+	
 	std::string nextArg = GetNextArg(args);
-	if (!nextArg.empty())
+	while (!nextArg.empty())
 	{
 		if (nextArg == "-o" || nextArg == "--output")
 		{
@@ -297,12 +308,27 @@ int main(int argc, char** argv)
 			}
 			outputFile = nextArg;
 		}
+		else if (nextArg == "-p" || nextArg == "--platform")
+		{
+			nextArg = GetNextArg(args);
+			if (nextArg.empty())
+			{
+				Logger::Error("Missing argument for --platform");
+				Usage(program);
+				exit(1);
+			}
+
+			if (nextArg == "rl" || nextArg == "raylib")
+				PlatformManager::SetPlatform(Platform::RAYLIB);
+		}
 		else
 		{
 			Logger::Error("Unknown Argument {}", nextArg);
 			Usage(program);
 			exit(1);
 		}
+
+		nextArg = GetNextArg(args);
 	}
 
 	if (file.empty())

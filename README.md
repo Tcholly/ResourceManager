@@ -4,8 +4,9 @@ Export to a header file simple constants.
 
 ## Getting Started
 
-```
-ResourceManager <file>
+```cmd
+$ ResourceManager <file>
+$ ResourceManager --help
 ```
 
 It will export a file to hpp.
@@ -28,6 +29,13 @@ Namespace_name
 var_name : type : value;
 
 ```
+
+## Supported types
+
+Support for:
+- color -> Must be written in #AARRGGBB format.
+
+Other types will simply be copied, for example using `var_name : int : 60` works. For strings there is an automatic conversion from `string` to `std::string`.
 
 ## TODO
 
