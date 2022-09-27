@@ -5,6 +5,8 @@ workspace "ResourceManager"
     architecture "x86_64"
     configurations { "Debug", "Release" }
 
+	warnings "Extra"
+
     filter { "configurations:Debug" }
         defines { "_DEBUG" }
         symbols "On"

@@ -27,13 +27,13 @@ template <> struct fmt::formatter<EndingType> : formatter<string_view>
 		string_view name = "unknown";
 		switch (m) 
 		{
-			case EndingType::NONE:              name = "NONE"; break;
-			case EndingType::NAMESPACE_BEGIN:   name = "{";    break;
-			case EndingType::NAMESPACE_END:     name = "}";    break;
-			case EndingType::COLON:             name = ":";    break;
-			case EndingType::SEMICOLON:         name = ";";    break;
-			case EndingType::END_OF_FILE:       name = "EOF";  break;
-			defautl: break;
+			case EndingType::NONE:              name = "NONE";        break;
+			case EndingType::NAMESPACE_BEGIN:   name = "{";           break;
+			case EndingType::NAMESPACE_END:     name = "}";           break;
+			case EndingType::COLON:             name = ":";           break;
+			case EndingType::SEMICOLON:         name = ";";           break;
+			case EndingType::END_OF_FILE:       name = "EOF";         break;
+			default:							name = "UNREACHABLE"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
