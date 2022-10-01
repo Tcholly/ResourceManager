@@ -43,7 +43,7 @@ Support for:
 Other types will simply be copied, for example using `var_name : foo : bar` works. But foo wil not be defined and the output will simply be a copy: `const foo var_name = bar;`
 
 # To support
-- char (doesn't support single quote)
+- char (doesn't support single quote, so if the char is `=` it will be interpreted as a comment)
 
 ## TODO
 
