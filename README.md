@@ -40,7 +40,7 @@ Support for:
 - color -> Must be written in #AARRGGBB format.
 - vector2f
 
-Other types will simply be copied, for example using `var_name : int : 60` works. For strings there is an automatic conversion from `string` to `std::string`.
+Other types will simply be copied, for example using `var_name : foo : bar` works. But foo wil not be defined and the output will simply be a copy: `const foo var_name = bar;`
 
 # To support
 - char (doesn't support single quote)
