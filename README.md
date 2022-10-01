@@ -30,12 +30,20 @@ var_name : type : value;
 
 ```
 
+Take a look at [test.txt](/test.txt) for more.
+
 ## Supported types
 
 Support for:
+- basic types (int, float, ...)
+- string
 - color -> Must be written in #AARRGGBB format.
+- vector2f
 
 Other types will simply be copied, for example using `var_name : int : 60` works. For strings there is an automatic conversion from `string` to `std::string`.
+
+# To support
+- char (doesn't support single quote)
 
 ## TODO
 

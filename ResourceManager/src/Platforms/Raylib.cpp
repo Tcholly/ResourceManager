@@ -76,12 +76,40 @@ namespace RaylibPlatform
 
 		result += "#ifndef RL_COLOR_TYPE\n";
 		result += "\t// Color, 4 components, R8G8B8A8 (32bit)\n";
-		result += "\ttypedef struct Color {\n";
+		result += "\ttypedef struct Color\n";
+		result += "\t{\n";
 		result += "\t\tunsigned char r;        // Color red value\n";
 		result += "\t\tunsigned char g;        // Color green value\n";
 		result += "\t\tunsigned char b;        // Color blue value\n";
 		result += "\t\tunsigned char a;        // Color alpha value\n";
 		result += "\t} Color;\n";
+		result += "\t#define RL_COLOR_TYPE\n";
+		result += "#endif\n";
+
+		return result;
+	}
+
+	Expr FormatVector2f(const Expr& expr) 	
+	{
+		Expr result;
+
+		result.name  = expr.name;
+		result.type  = "Vector2";
+		result.value = expr.value;
+
+		return result;
+	}
+
+	std::string DefineVector2f()
+	{
+		std::string result;
+
+		result += "#ifndef RL_VECTOR2_TYPE\n";
+		result += "\ttypedef struct Vector2\n";
+		result += "\t{\n";
+		result += "\t\tfloat x;\n";
+		result += "\t\tfloat y;\n";
+		result += "\t} Vector2;\n";
 		result += "\t#define RL_COLOR_TYPE\n";
 		result += "#endif\n";
 

@@ -8,7 +8,7 @@
 
 namespace PlatformManager
 {
-	Platform platform = Platform::NONE;
+	static Platform platform = Platform::NONE;
 
 
 	void SetPlatform(Platform _platform)
@@ -50,5 +50,45 @@ namespace PlatformManager
 		}
 
 		return "";
+	}
+
+
+	Expr FormatVector2f(const Expr& vector2fExpr)
+	{
+		switch (platform)
+		{
+			case Platform::RAYLIB:
+				return RaylibPlatform::FormatVector2f(vector2fExpr);
+
+			case Platform::NONE:
+				return NoPlatform::FormatVector2f(vector2fExpr);
+
+			default:
+				Logger::Error("UNREACHABLE FormatVector2f default");
+				break;
+		}
+
+		return {vector2fExpr.name, vector2fExpr.type, vector2fExpr.value};
+
+	}
+
+
+	std::string DefineVector2f()
+	{
+		switch (platform)
+		{
+			case Platform::RAYLIB:
+				return RaylibPlatform::DefineVector2f();
+
+			case Platform::NONE:
+				return NoPlatform::DefineVector2f();
+
+			default:
+				Logger::Error("UNREACHABLE DefineVector2f default");
+				break;
+		}
+
+		return "";
+
 	}
 }

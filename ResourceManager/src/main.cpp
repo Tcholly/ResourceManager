@@ -12,8 +12,8 @@
 enum EndingType
 {
 	NONE,
-	NAMESPACE_BEGIN,
-	NAMESPACE_END,
+	BRACES_OPEN,
+	BRACES_CLOSE,
 	COLON,
 	SEMICOLON,
 	END_OF_FILE
@@ -28,8 +28,8 @@ template <> struct fmt::formatter<EndingType> : formatter<string_view>
 		switch (m) 
 		{
 			case EndingType::NONE:              name = "NONE";        break;
-			case EndingType::NAMESPACE_BEGIN:   name = "{";           break;
-			case EndingType::NAMESPACE_END:     name = "}";           break;
+			case EndingType::BRACES_OPEN:		name = "{";           break;
+			case EndingType::BRACES_CLOSE:		name = "}";           break;
 			case EndingType::COLON:             name = ":";           break;
 			case EndingType::SEMICOLON:         name = ";";           break;
 			case EndingType::END_OF_FILE:       name = "EOF";         break;
@@ -102,9 +102,9 @@ std::pair<std::string, EndingType> ParseNext(std::stringstream& ss)
 	while (ss.get(ch))
 	{
 		if (ch == '{')
-			return {result, NAMESPACE_BEGIN};
+			return {result, BRACES_OPEN};
 		if (ch == '}')
-			return {result, NAMESPACE_END};
+			return {result, BRACES_CLOSE};
 		if (ch == ':')
 			return {result, COLON};
 		if (ch == ';')
@@ -116,6 +116,36 @@ std::pair<std::string, EndingType> ParseNext(std::stringstream& ss)
 	return {result, END_OF_FILE};
 }
 
+std::string GetValue(std::stringstream& ss, const std::string& name, const std::string& type)
+{
+	auto value = ParseNext(ss);
+
+	if (value.second == EndingType::SEMICOLON)
+		return value.first;
+
+	if (value.second == EndingType::BRACES_OPEN)
+	{
+		value = ParseNext(ss);
+		if (value.second == EndingType::BRACES_CLOSE)
+		{
+			auto end = ParseNext(ss);
+			if (end.second != EndingType::SEMICOLON)
+			{
+				Logger::Error("Unknown expression: {} : {} : {{ {} }} {} {}", name, type, value.first, end.first, end.second);
+				exit(1);
+			}
+			return '{' + value.first + '}';
+		}
+
+		return "";
+	}
+	
+	Logger::Error("Unknown expression: {} : {} : {} {}", name, type, value.first, value.second);
+	exit(1);
+
+	return "";
+}
+
 Expr GetExpr(std::stringstream& ss, std::string name)
 {
 	auto type = ParseNext(ss);
@@ -125,14 +155,14 @@ Expr GetExpr(std::stringstream& ss, std::string name)
 		exit(1);
 	}
 
-	auto value = ParseNext(ss);
-	if (value.second != EndingType::SEMICOLON)
+	std::string value = GetValue(ss, name, type.first);
+	if (value.empty())
 	{
-		Logger::Error("Unknown expression: {} : {} {}", name, type.first, type.second);
+		Logger::Error("Unvalid value: {} : {} : {}", name, type.first, value);
 		exit(1);
-	}	
+	}
 
-	return {name, type.first, value.first};
+	return {name, type.first, value};
 }
 
 Namespace* GetNamespace(std::stringstream& ss, std::string name)
@@ -145,14 +175,14 @@ Namespace* GetNamespace(std::stringstream& ss, std::string name)
 		auto token = ParseNext(ss);
 		switch (token.second)
 		{
-			case NAMESPACE_BEGIN:
+			case BRACES_OPEN:
 			{
 				Namespace* ns = GetNamespace(ss, token.first);
 				result->namespaces.emplace_back(ns);
 				break;
 			}
 				
-			case NAMESPACE_END:
+			case BRACES_CLOSE:
 				return result;
 				break;
 
@@ -205,6 +235,10 @@ void InitHppFile(std::ofstream& out, Namespace* root)
 
 	if (DoesNamespaceContainsType(root, "color"))
 		out << PlatformManager::DefineColor() << '\n';
+	
+	if (DoesNamespaceContainsType(root, "vector2f"))
+		out << PlatformManager::DefineVector2f() << '\n';
+
 
 	DefineConstantHpp(out, "PI", "3.14159265358979323846f");
 	DefineConstantHpp(out, "E",  "2.71828182845904523536f");
@@ -234,6 +268,8 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 			expr.type = "std::string";
 		else if (expr.type == "color")
 			expr = PlatformManager::FormatColor(expr);	
+		else if (expr.type == "vector2f")
+			expr = PlatformManager::FormatVector2f(expr);
 
 		out << expr.type << ' ' << expr.name << " = " << expr.value << ";\n";  
 	}

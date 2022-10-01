@@ -25,4 +25,30 @@ namespace NoPlatform
 
 		return result;
 	}
+
+	Expr FormatVector2f(const Expr& expr)
+	{
+		Expr result;
+
+		result.name = expr.name;
+		result.type = expr.type; 
+		result.value = expr.value;
+
+		return result;
+	}
+
+	std::string DefineVector2f()
+	{
+		std::string result;
+		
+		result += "#ifndef VECTOR2F_TYPE\n";
+		result += "\ttypedef struct vector2f\n";
+		result += "\t{\n";
+		result += "\t\tfloat x, y;\n";
+		result += "\t} vector2f;\n";
+		result += "\t#define VECTOR2F_TYPE\n";
+		result += "#endif\n";
+
+		return result;
+	}
 }
