@@ -27,4 +27,4 @@ project "ResourceManager"
 
     libdirs "Dependencies/fmt/%{cfg.system}/lib"
 
-	links { "fmt" }    
+	links { "fmt", "stdc++fs" }    

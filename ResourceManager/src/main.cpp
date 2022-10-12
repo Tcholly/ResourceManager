@@ -3,6 +3,8 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <filesystem>
+#include <chrono>
 #include <fmt/format.h>
 
 #include "Utils/Logger.h"
@@ -227,7 +229,7 @@ void DefineConstantHpp(std::ofstream& out, std::string name, std::string value)
 
 void InitHppFile(std::ofstream& out, Namespace* root)
 {
-	out << "// This file is auto generated\n";
+	out << "// This file is auto generated, DO NOT MODIFY (pwease uwu)\n";
 	out << "#pragma once\n\n";
 
 	if (DoesNamespaceContainsType(root, "string"))
@@ -374,6 +376,22 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
+    // TODO: Detect if there is a change in flags
+    std::filesystem::path outPath(outputFile);
+    std::filesystem::path inPath(file);
+    if (std::filesystem::exists(outPath) && std::filesystem::exists(inPath))
+    {
+        auto outModifiedTime = std::filesystem::last_write_time(outPath);
+        auto inModifiedTime = std::filesystem::last_write_time(inPath);
+
+        if (outModifiedTime > inModifiedTime)
+        {
+            Logger::Info("{} is up to date", file);
+            exit(0);
+        }
+    }
+    
+
 	std::ifstream in(file);
 	if (!in)
 	{
@@ -410,7 +428,7 @@ int main(int argc, char** argv)
 	ExportNamespaceToHpp(out, root, 0);
 	out.close();
 
-	std::cout << "Successfully exported " << file << " to " << outputFile << '\n';
+    Logger::Info("Successfully exported {} to {}", file, outputFile);
 
 	delete root;
 }
