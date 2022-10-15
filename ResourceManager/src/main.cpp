@@ -356,7 +356,7 @@ int main(int argc, char** argv)
 		if (nextArg == "-o" || nextArg == "--output")
 		{
 			nextArg = GetNextArg(args);
-			if (nextArg.empty())
+			if (nextArg.empty() || nextArg.find("-") == 0)
 			{
 				Logger::Error("Missing argument for --output");
 				Usage(program);
@@ -367,7 +367,7 @@ int main(int argc, char** argv)
 		else if (nextArg == "-p" || nextArg == "--platform")
 		{
 			nextArg = GetNextArg(args);
-			if (nextArg.empty())
+			if (nextArg.empty() || nextArg.find("-") == 0)
 			{
 				Logger::Error("Missing argument for --platform");
 				Usage(program);
@@ -375,11 +375,19 @@ int main(int argc, char** argv)
 			}
 
 			if (nextArg == "rl" || nextArg == "raylib")
+			{
 				PlatformManager::SetPlatform(Platform::RAYLIB);
+			}
+			else
+			{
+				Logger::Error("Unknown argument for --platform: {}", nextArg);
+				Usage(program);
+				exit(1);
+			}
 		}
 		else
 		{
-			Logger::Error("Unknown Argument {}", nextArg);
+			Logger::Error("Unknown flag: {}", nextArg);
 			Usage(program);
 			exit(1);
 		}
@@ -389,7 +397,7 @@ int main(int argc, char** argv)
 
 	if (file.empty())
 	{
-		Logger::Error("Missing argument");
+		Logger::Error("Missing argument <FILE>");
 		Usage(program);
 		exit(1);
 	}
