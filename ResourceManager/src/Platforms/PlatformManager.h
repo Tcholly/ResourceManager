@@ -13,6 +13,7 @@ enum class Platform
 namespace PlatformManager
 {
 	void SetPlatform(Platform platform);
+	Platform GetPlatform();
 
 	Expr FormatColor(const Expr& colorExpr); // Format #AARRGGBB
 	std::string DefineColor();

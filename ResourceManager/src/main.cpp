@@ -29,13 +29,30 @@ template <> struct fmt::formatter<EndingType> : formatter<string_view>
 		string_view name = "unknown";
 		switch (m) 
 		{
-			case EndingType::NONE:              name = "NONE";        break;
-			case EndingType::BRACES_OPEN:		name = "{";           break;
-			case EndingType::BRACES_CLOSE:		name = "}";           break;
-			case EndingType::COLON:             name = ":";           break;
-			case EndingType::SEMICOLON:         name = ";";           break;
-			case EndingType::END_OF_FILE:       name = "EOF";         break;
-			default:							name = "UNREACHABLE"; break;
+			case EndingType::NONE:         name = "NONE";        break;
+			case EndingType::BRACES_OPEN:  name = "{";           break;
+			case EndingType::BRACES_CLOSE: name = "}";           break;
+			case EndingType::COLON:        name = ":";           break;
+			case EndingType::SEMICOLON:    name = ";";           break;
+			case EndingType::END_OF_FILE:  name = "EOF";         break;
+			default:                       name = "UNREACHABLE"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+// TODO: Findo how to move in PlatformManager.cpp
+template <> struct fmt::formatter<Platform> : formatter<string_view>
+{
+	template <typename FormatContext>
+	auto format(Platform m, FormatContext& ctx) const -> decltype(ctx.out())
+	{
+		string_view name = "unknown";
+		switch (m)
+		{
+			case Platform::NONE:   name = "NONE";        break;
+			case Platform::RAYLIB: name = "RAYLIB";      break;
+			default:               name = "UNREACHABLE"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -61,13 +78,13 @@ std::string GetNextArg(Args& args)
 
 std::string trim(const std::string& str)
 {
-    size_t first = str.find_first_not_of(" \t");
-    if (std::string::npos == first)
-    {
-        return str;
-    }
-    size_t last = str.find_last_not_of(" \t");
-    return str.substr(first, (last - first + 1));
+	size_t first = str.find_first_not_of(" \t");
+	if (std::string::npos == first)
+	{
+		return str;
+	}
+	size_t last = str.find_last_not_of(" \t");
+	return str.substr(first, (last - first + 1));
 }
 
 std::string GetOneLineContent(std::stringstream& ss)
@@ -230,6 +247,7 @@ void DefineConstantHpp(std::ofstream& out, std::string name, std::string value)
 void InitHppFile(std::ofstream& out, Namespace* root)
 {
 	out << "// This file is auto generated, DO NOT MODIFY (pwease uwu)\n";
+	out << "// PLATFORM: " << fmt::format("{}\n", PlatformManager::GetPlatform());
 	out << "#pragma once\n\n";
 
 	if (DoesNamespaceContainsType(root, "string"))
@@ -309,7 +327,7 @@ void Usage(std::string program_name)
 	std::cout << "USAGE:" << '\n';
 	std::cout << "       " << program_name << " <FILE> [OPTIONS]\n";
 	std::cout << "OPTIONS:\n";
-	std::cout << "       -o   --output  <file>       Uses the given path to output the exported hpp code\n";
+	std::cout << "       -o   --output   <file>      Uses the given path to output the exported hpp code\n";
 	std::cout << "       -p   --platform <platform>  Uses the given platform for types definition, available platforms:\n";
 	std::cout << "                                   rl, raylib\n"; 
 }
@@ -376,21 +394,49 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-    // TODO: Detect if there is a change in flags
-    std::filesystem::path outPath(outputFile);
-    std::filesystem::path inPath(file);
-    if (std::filesystem::exists(outPath) && std::filesystem::exists(inPath))
-    {
-        auto outModifiedTime = std::filesystem::last_write_time(outPath);
-        auto inModifiedTime = std::filesystem::last_write_time(inPath);
+	std::filesystem::path outPath(outputFile);
+	std::filesystem::path inPath(file);
+	if (std::filesystem::exists(outPath) && std::filesystem::exists(inPath))
+	{
+		auto outModifiedTime = std::filesystem::last_write_time(outPath);
+		auto inModifiedTime = std::filesystem::last_write_time(inPath);
 
-        if (outModifiedTime > inModifiedTime)
-        {
-            Logger::Info("{} is up to date", file);
-            exit(0);
-        }
-    }
-    
+		if (outModifiedTime > inModifiedTime)
+		{
+			std::ifstream prevOutFile(outputFile);
+			if (!prevOutFile)
+			{
+				Logger::Warn("Failed to scan {}: {}", outputFile, strerror(errno));
+				Logger::Warn("Rebuilding {}", outputFile);
+				prevOutFile.close();
+			}
+			else
+			{
+				std::string line;
+				std::getline(prevOutFile, line);
+				std::getline(prevOutFile, line);
+				prevOutFile.close();
+
+				std::string check = "// PLATFORM: ";
+				if (line.find(check) != 0)
+				{
+					Logger::Warn("File {} has been modified, please do not modify", outputFile);
+					Logger::Warn("Rebuilding {}", outputFile);
+				}
+				else
+				{
+					std::string scannedPlatform = line.substr(check.size());
+					if (scannedPlatform == fmt::format("{}", PlatformManager::GetPlatform()))
+					{
+						Logger::Info("{} is up to date", file);
+						exit(0);
+					}
+				}
+
+			}
+		}
+	}
+
 
 	std::ifstream in(file);
 	if (!in)
@@ -428,7 +474,7 @@ int main(int argc, char** argv)
 	ExportNamespaceToHpp(out, root, 0);
 	out.close();
 
-    Logger::Info("Successfully exported {} to {}", file, outputFile);
+	Logger::Info("Successfully exported {} to {}", file, outputFile);
 
 	delete root;
 }

@@ -5,7 +5,6 @@
 
 #include "../Utils/Logger.h"
 
-
 namespace PlatformManager
 {
 	static Platform platform = Platform::NONE;
@@ -14,6 +13,11 @@ namespace PlatformManager
 	void SetPlatform(Platform _platform)
 	{
 		platform = _platform;
+	}
+
+	Platform GetPlatform()
+	{
+		return platform;
 	}
 
 	Expr FormatColor(const Expr& colorExpr)

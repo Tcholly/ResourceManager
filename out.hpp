@@ -1,4 +1,5 @@
 // This file is auto generated, DO NOT MODIFY (pwease uwu)
+// PLATFORM: RAYLIB
 #pragma once
 
 #include <string>
