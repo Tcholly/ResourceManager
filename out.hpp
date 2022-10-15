@@ -38,6 +38,7 @@ namespace Textures
 	{
 		const std::string DOG = "Assets/Dog.png";
 		const Color CAT = {129, 162, 242, 255};
+		const char BAT = '=';
 	} // namespace Filepaths
 
 } // namespace Textures

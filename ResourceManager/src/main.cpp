@@ -97,14 +97,17 @@ std::string GetOneLineContent(std::stringstream& ss)
 
 		std::stringstream finalStream(line);
 		bool inString = false;
+		bool inChar = false;
 		char ch;
 		while (finalStream.get(ch))
 		{
-			if (ch == '\"')
+			if (ch == '\"' && !inChar)
 				inString = !inString;
-			else if ((ch == ' ' || ch == '\t') && !inString)
+			else if (ch == '\'' && !inString)
+				inChar = !inChar;
+			else if ((ch == ' ' || ch == '\t') && !inString &&!inChar)
 				continue;
-			else if (ch == '=' && !inString)
+			else if (ch == '=' && !inString &&!inChar)
 				break;
 
 			result += ch;
@@ -139,9 +142,6 @@ std::string GetValue(std::stringstream& ss, const std::string& name, const std::
 {
 	auto value = ParseNext(ss);
 
-	if (value.second == EndingType::SEMICOLON)
-		return value.first;
-
 	if (value.second == EndingType::BRACES_OPEN)
 	{
 		value = ParseNext(ss);
@@ -151,6 +151,7 @@ std::string GetValue(std::stringstream& ss, const std::string& name, const std::
 			if (end.second != EndingType::SEMICOLON)
 			{
 				Logger::Error("Unknown expression: {} : {} : {{ {} }} {} {}", name, type, value.first, end.first, end.second);
+				Logger::Error("Missing semicolon?");
 				exit(1);
 			}
 			return '{' + value.first + '}';
@@ -158,8 +159,19 @@ std::string GetValue(std::stringstream& ss, const std::string& name, const std::
 
 		return "";
 	}
+
+	if (value.second == EndingType::SEMICOLON)
+	{
+		return value.first;
+	}
+	else
+	{
+		Logger::Error("Unknown expression: {} : {} : {} {}", name, type, value.first, value.second);
+		Logger::Error("Missing semicolon?");
+		exit(1);
+	}
 	
-	Logger::Error("Unknown expression: {} : {} : {} {}", name, type, value.first, value.second);
+	Logger::Error("UNREACHABLE: Unknown expression: {} : {} : {} {}", name, type, value.first, value.second);
 	exit(1);
 
 	return "";
