@@ -1,14 +1,8 @@
 #pragma once
 
-#include "../Namespace.h"
-
-#include <string>
+#include "PlatformManager.h"
 
 namespace RaylibPlatform 
 {
-	Expr FormatColor(const Expr& expr); 	
-	std::string DefineColor(); 	
-
-	Expr FormatVector2f(const Expr& expr); 	
-	std::string DefineVector2f();
+	PlatformData GetPlatformData();
 }

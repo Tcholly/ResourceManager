@@ -3,7 +3,7 @@ Textures
 {
 	Filepaths
 	{
-		DOG	: string : "Assets/Dog.png";
+		DOG : string : "Assets/Dog.png";
 		CAT : color  : #FF81A2f2; = #AARRGGBB
 		BAT : char   : '=';
 	}

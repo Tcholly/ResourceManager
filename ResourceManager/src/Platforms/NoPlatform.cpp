@@ -4,7 +4,7 @@
 
 namespace NoPlatform 
 {
-	Expr FormatColor(const Expr& colorExpr)
+	static Expr FormatColor(const Expr& colorExpr)
 	{
 		Expr result;
 		result.name  = colorExpr.name;
@@ -14,19 +14,7 @@ namespace NoPlatform
 		return result;
 	}
 	
-	std::string DefineColor()
-	{
-		std::string result;
-
-		result += "#ifndef COLOR_TYPE\n";
-		result += "\ttypedef unsigned int color;\n";
-		result += "\t#define COLOR_TYPE\n";
-		result += "#endif\n";
-
-		return result;
-	}
-
-	Expr FormatVector2f(const Expr& expr)
+	static Expr ReturnSame(const Expr& expr)
 	{
 		Expr result;
 
@@ -37,17 +25,31 @@ namespace NoPlatform
 		return result;
 	}
 
-	std::string DefineVector2f()
+	PlatformData GetPlatformData()
 	{
-		std::string result;
-		
-		result += "#ifndef VECTOR2F_TYPE\n";
-		result += "\ttypedef struct vector2f\n";
-		result += "\t{\n";
-		result += "\t\tfloat x, y;\n";
-		result += "\t} vector2f;\n";
-		result += "\t#define VECTOR2F_TYPE\n";
-		result += "#endif\n";
+		PlatformData result;
+
+		TypeInfo colorInfo;
+		colorInfo.name = "color";
+		colorInfo.definition += "#ifndef COLOR_TYPE\n";
+		colorInfo.definition += "\ttypedef unsigned int color;\n";
+		colorInfo.definition += "\t#define COLOR_TYPE\n";
+		colorInfo.definition += "#endif\n";
+		colorInfo.FormatType = FormatColor;
+
+		TypeInfo vector2fInfo;
+		vector2fInfo.name = "vector2f";
+		vector2fInfo.definition += "#ifndef VECTOR2F_TYPE\n";
+		vector2fInfo.definition += "\ttypedef struct vector2f\n";
+		vector2fInfo.definition += "\t{\n";
+		vector2fInfo.definition += "\t\tfloat x, y;\n";
+		vector2fInfo.definition += "\t} vector2f;\n";
+		vector2fInfo.definition += "\t#define VECTOR2F_TYPE\n";
+		vector2fInfo.definition += "#endif\n";
+		vector2fInfo.FormatType = ReturnSame;
+
+		result.data[Type::COLOR] = colorInfo;
+		result.data[Type::VECTOR2F] = vector2fInfo;
 
 		return result;
 	}

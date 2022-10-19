@@ -3,11 +3,30 @@
 #include "../Namespace.h"
 
 #include <string>
+#include <map>
 
 enum class Platform
 {
 	NONE,
 	RAYLIB,
+};
+
+enum class Type
+{
+	COLOR,
+	VECTOR2F
+};
+
+struct TypeInfo
+{
+	std::string name;
+	std::string definition;
+	Expr(*FormatType)(const Expr&);
+};
+
+struct PlatformData
+{
+	std::map<Type, TypeInfo> data;
 };
 
 namespace PlatformManager

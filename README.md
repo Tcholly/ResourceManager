@@ -12,7 +12,7 @@ $ ResourceManager --help
 It will export a file to hpp.
 The file must look like this:
 
-```
+```javascript
 Namespace_name
 {
 	Namespace_name

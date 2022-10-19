@@ -33,8 +33,7 @@ static int ParseHexNumber(const std::string& hex)
 
 namespace RaylibPlatform
 {
-
-	Expr FormatColor(const Expr& colorExpr)
+	static Expr FormatColor(const Expr& colorExpr)
 	{
 		Expr result;
 		result.name  = colorExpr.name;
@@ -70,26 +69,7 @@ namespace RaylibPlatform
 		return result;
 	}
 	
-	std::string DefineColor()
-	{
-		std::string result;
-
-		result += "#ifndef RL_COLOR_TYPE\n";
-		result += "\t// Color, 4 components, R8G8B8A8 (32bit)\n";
-		result += "\ttypedef struct Color\n";
-		result += "\t{\n";
-		result += "\t\tunsigned char r;        // Color red value\n";
-		result += "\t\tunsigned char g;        // Color green value\n";
-		result += "\t\tunsigned char b;        // Color blue value\n";
-		result += "\t\tunsigned char a;        // Color alpha value\n";
-		result += "\t} Color;\n";
-		result += "\t#define RL_COLOR_TYPE\n";
-		result += "#endif\n";
-
-		return result;
-	}
-
-	Expr FormatVector2f(const Expr& expr) 	
+	static Expr FormatVector2(const Expr& expr) 	
 	{
 		Expr result;
 
@@ -100,18 +80,41 @@ namespace RaylibPlatform
 		return result;
 	}
 
-	std::string DefineVector2f()
+	PlatformData GetPlatformData()
 	{
-		std::string result;
+		PlatformData result;
 
-		result += "#ifndef RL_VECTOR2_TYPE\n";
-		result += "\ttypedef struct Vector2\n";
-		result += "\t{\n";
-		result += "\t\tfloat x;\n";
-		result += "\t\tfloat y;\n";
-		result += "\t} Vector2;\n";
-		result += "\t#define RL_COLOR_TYPE\n";
-		result += "#endif\n";
+		TypeInfo colorInfo;
+		colorInfo.name = "Color";
+		colorInfo.definition += "#ifndef RL_COLOR_TYPE\n";
+		colorInfo.definition += "\t// Color, 4 components, R8G8B8A8 (32bit)\n";
+		colorInfo.definition += "\ttypedef struct Color\n";
+		colorInfo.definition += "\t{\n";
+		colorInfo.definition += "\t\tunsigned char r;        // Color red value\n";
+		colorInfo.definition += "\t\tunsigned char g;        // Color green value\n";
+		colorInfo.definition += "\t\tunsigned char b;        // Color blue value\n";
+		colorInfo.definition += "\t\tunsigned char a;        // Color alpha value\n";
+		colorInfo.definition += "\t} Color;\n";
+		colorInfo.definition += "\t#define RL_COLOR_TYPE\n";
+		colorInfo.definition += "#endif\n";
+		colorInfo.FormatType = FormatColor;
+
+
+		TypeInfo vector2fInfo;
+		vector2fInfo.name = "Vector2";
+		vector2fInfo.definition += "#ifndef RL_VECTOR2_TYPE\n";
+		vector2fInfo.definition += "\ttypedef struct Vector2\n";
+		vector2fInfo.definition += "\t{\n";
+		vector2fInfo.definition += "\t\tfloat x;\n";
+		vector2fInfo.definition += "\t\tfloat y;\n";
+		vector2fInfo.definition += "\t} Vector2;\n";
+		vector2fInfo.definition += "\t#define RL_COLOR_TYPE\n";
+		vector2fInfo.definition += "#endif\n";
+		vector2fInfo.FormatType = FormatVector2;
+
+
+		result.data[Type::COLOR] = colorInfo;
+		result.data[Type::VECTOR2F] = vector2fInfo;
 
 		return result;
 	}

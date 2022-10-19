@@ -8,11 +8,28 @@
 namespace PlatformManager
 {
 	static Platform platform = Platform::NONE;
-
+	static std::map<Platform, PlatformData> platformsInfo;
 
 	void SetPlatform(Platform _platform)
 	{
 		platform = _platform;
+
+		if (platformsInfo.find(platform) == platformsInfo.end())
+		{
+			switch (platform)
+			{
+				case Platform::NONE:
+					platformsInfo[platform] = NoPlatform::GetPlatformData();
+					break;
+				case Platform::RAYLIB:
+					platformsInfo[platform] = RaylibPlatform::GetPlatformData();
+					break;
+				default:
+					Logger::Error("UNREACHABLE SetPlatform default");
+					exit(1);
+					break;
+			}
+		}
 	}
 
 	Platform GetPlatform()
@@ -22,77 +39,23 @@ namespace PlatformManager
 
 	Expr FormatColor(const Expr& colorExpr)
 	{
-		switch (platform)
-		{
-			case Platform::RAYLIB:
-				return RaylibPlatform::FormatColor(colorExpr);
-
-			case Platform::NONE:
-				return NoPlatform::FormatColor(colorExpr);
-
-			default:
-				Logger::Error("UNREACHABLE FormatColor default");
-				break;
-		}
-
-		return {colorExpr.name, colorExpr.type, colorExpr.value};
+		return platformsInfo[platform].data[Type::COLOR].FormatType(colorExpr);
 	}
 
 	std::string DefineColor()
 	{
-		switch (platform)
-		{
-			case Platform::RAYLIB:
-				return RaylibPlatform::DefineColor();
-
-			case Platform::NONE:
-				return NoPlatform::DefineColor();
-
-			default:
-				Logger::Error("UNREACHABLE DefineColor default");
-				break;
-		}
-
-		return "";
+		return platformsInfo[platform].data[Type::COLOR].definition;
 	}
 
 
 	Expr FormatVector2f(const Expr& vector2fExpr)
 	{
-		switch (platform)
-		{
-			case Platform::RAYLIB:
-				return RaylibPlatform::FormatVector2f(vector2fExpr);
-
-			case Platform::NONE:
-				return NoPlatform::FormatVector2f(vector2fExpr);
-
-			default:
-				Logger::Error("UNREACHABLE FormatVector2f default");
-				break;
-		}
-
-		return {vector2fExpr.name, vector2fExpr.type, vector2fExpr.value};
-
+		return platformsInfo[platform].data[Type::VECTOR2F].FormatType(vector2fExpr);
 	}
 
 
 	std::string DefineVector2f()
 	{
-		switch (platform)
-		{
-			case Platform::RAYLIB:
-				return RaylibPlatform::DefineVector2f();
-
-			case Platform::NONE:
-				return NoPlatform::DefineVector2f();
-
-			default:
-				Logger::Error("UNREACHABLE DefineVector2f default");
-				break;
-		}
-
-		return "";
-
+		return platformsInfo[platform].data[Type::VECTOR2F].definition;
 	}
 }
