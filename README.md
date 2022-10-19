@@ -39,12 +39,12 @@ Support for:
 - string
 - color -> Must be written in #AARRGGBB format.
 - vector2f
+- vector2i
 
 Other types will simply be copied, for example using `var_name : foo : bar` works. But foo wil not be defined and the output will simply be a copy: `const foo var_name = bar;`
 
 # To support
 - Other math related types such as:
-	- vector2i
 	- rectangle
 	- ...
 - textures

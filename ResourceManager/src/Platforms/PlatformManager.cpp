@@ -58,4 +58,15 @@ namespace PlatformManager
 	{
 		return platformsInfo[platform].data[Type::VECTOR2F].definition;
 	}
+
+	Expr FormatVector2i(const Expr& vector2iExpr)
+	{
+		return platformsInfo[platform].data[Type::VECTOR2I].FormatType(vector2iExpr);
+	}
+
+
+	std::string DefineVector2i()
+	{
+		return platformsInfo[platform].data[Type::VECTOR2I].definition;
+	}
 }

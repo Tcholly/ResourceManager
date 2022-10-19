@@ -100,21 +100,22 @@ namespace RaylibPlatform
 		colorInfo.FormatType = FormatColor;
 
 
-		TypeInfo vector2fInfo;
-		vector2fInfo.name = "Vector2";
-		vector2fInfo.definition += "#ifndef RL_VECTOR2_TYPE\n";
-		vector2fInfo.definition += "\ttypedef struct Vector2\n";
-		vector2fInfo.definition += "\t{\n";
-		vector2fInfo.definition += "\t\tfloat x;\n";
-		vector2fInfo.definition += "\t\tfloat y;\n";
-		vector2fInfo.definition += "\t} Vector2;\n";
-		vector2fInfo.definition += "\t#define RL_COLOR_TYPE\n";
-		vector2fInfo.definition += "#endif\n";
-		vector2fInfo.FormatType = FormatVector2;
+		TypeInfo vector2Info;
+		vector2Info.name = "Vector2";
+		vector2Info.definition += "#ifndef RL_VECTOR2_TYPE\n";
+		vector2Info.definition += "\ttypedef struct Vector2\n";
+		vector2Info.definition += "\t{\n";
+		vector2Info.definition += "\t\tfloat x;\n";
+		vector2Info.definition += "\t\tfloat y;\n";
+		vector2Info.definition += "\t} Vector2;\n";
+		vector2Info.definition += "\t#define RL_COLOR_TYPE\n";
+		vector2Info.definition += "#endif\n";
+		vector2Info.FormatType = FormatVector2;
 
 
 		result.data[Type::COLOR] = colorInfo;
-		result.data[Type::VECTOR2F] = vector2fInfo;
+		result.data[Type::VECTOR2F] = vector2Info;
+		result.data[Type::VECTOR2I] = vector2Info;
 
 		return result;
 	}

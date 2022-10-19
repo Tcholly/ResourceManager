@@ -16,4 +16,5 @@ Globals
 	{
 		TARGET_FPS : int : 60;
 	}
+	VIC : vector2i : { 1, 4 };
 }

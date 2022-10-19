@@ -271,6 +271,10 @@ void InitHppFile(std::ofstream& out, Namespace* root)
 	if (DoesNamespaceContainsType(root, "vector2f"))
 		out << PlatformManager::DefineVector2f() << '\n';
 
+	// WARNING: In case of platform such as raylib it repeats the definition
+	if (DoesNamespaceContainsType(root, "vector2i"))
+		out << PlatformManager::DefineVector2i() << '\n';
+
 
 	DefineConstantHpp(out, "PI", "3.14159265358979323846f");
 	DefineConstantHpp(out, "E",  "2.71828182845904523536f");
@@ -302,6 +306,8 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 			expr = PlatformManager::FormatColor(expr);	
 		else if (expr.type == "vector2f")
 			expr = PlatformManager::FormatVector2f(expr);
+		else if (expr.type == "vector2i")
+			expr = PlatformManager::FormatVector2i(expr);
 
 		out << expr.type << ' ' << expr.name << " = " << expr.value << ";\n";  
 	}

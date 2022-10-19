@@ -14,7 +14,8 @@ enum class Platform
 enum class Type
 {
 	COLOR,
-	VECTOR2F
+	VECTOR2F,
+	VECTOR2I
 };
 
 struct TypeInfo
@@ -39,4 +40,7 @@ namespace PlatformManager
 
 	Expr FormatVector2f(const Expr& vector2fExpr);
 	std::string DefineVector2f();
+
+	Expr FormatVector2i(const Expr& vector2iExpr);
+	std::string DefineVector2i();
 }

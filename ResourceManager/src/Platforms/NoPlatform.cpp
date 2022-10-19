@@ -48,8 +48,20 @@ namespace NoPlatform
 		vector2fInfo.definition += "#endif\n";
 		vector2fInfo.FormatType = ReturnSame;
 
+		TypeInfo vector2iInfo;
+		vector2iInfo.name = "vector2i";
+		vector2iInfo.definition += "#ifndef VECTOR2I_TYPE\n";
+		vector2iInfo.definition += "\ttypedef struct vector2i\n";
+		vector2iInfo.definition += "\t{\n";
+		vector2iInfo.definition += "\t\tint x, y;\n";
+		vector2iInfo.definition += "\t} vector2i;\n";
+		vector2iInfo.definition += "\t#define VECTOR2I_TYPE\n";
+		vector2iInfo.definition += "#endif\n";
+		vector2iInfo.FormatType = ReturnSame;
+
 		result.data[Type::COLOR] = colorInfo;
 		result.data[Type::VECTOR2F] = vector2fInfo;
+		result.data[Type::VECTOR2I] = vector2iInfo;
 
 		return result;
 	}

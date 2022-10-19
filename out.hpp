@@ -25,6 +25,15 @@
 	#define RL_COLOR_TYPE
 #endif
 
+#ifndef RL_VECTOR2_TYPE
+	typedef struct Vector2
+	{
+		float x;
+		float y;
+	} Vector2;
+	#define RL_COLOR_TYPE
+#endif
+
 #ifndef PI
 	#define PI 3.14159265358979323846f
 #endif
@@ -51,5 +60,6 @@ namespace Globals
 	} // namespace Vars
 
 	const Vector2 VEC = {0.0f,0.2f};
+	const Vector2 VIC = {1,4};
 } // namespace Globals
 
