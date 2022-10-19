@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 
 #include "Utils/Logger.h"
+#include "Utils/Timer.h"
 #include "Platforms/PlatformManager.h"
 #include "Namespace.h"
 
@@ -356,6 +357,8 @@ int main(int argc, char** argv)
 	Args args = {argc, argv};
 	std::string program = GetNextArg(args);
 	std::string file = GetNextArg(args);
+
+	ScopeTimer mainTimer("The program took " CONSOLE_YELLOW "{}" CONSOLE_GREEN " seconds");
 
 	if (file == "-h" || file == "--help")
 	{
