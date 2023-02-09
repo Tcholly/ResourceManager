@@ -108,7 +108,7 @@ namespace RaylibPlatform
 		vector2Info.definition += "\t\tfloat x;\n";
 		vector2Info.definition += "\t\tfloat y;\n";
 		vector2Info.definition += "\t} Vector2;\n";
-		vector2Info.definition += "\t#define RL_COLOR_TYPE\n";
+		vector2Info.definition += "\t#define RL_VECTOR2_TYPE\n";
 		vector2Info.definition += "#endif\n";
 		vector2Info.FormatType = FormatVector2;
 
