@@ -22,7 +22,7 @@
 		float x;
 		float y;
 	} Vector2;
-	#define RL_COLOR_TYPE
+	#define RL_VECTOR2_TYPE
 #endif
 
 #ifndef RL_VECTOR2_TYPE
@@ -31,7 +31,7 @@
 		float x;
 		float y;
 	} Vector2;
-	#define RL_COLOR_TYPE
+	#define RL_VECTOR2_TYPE
 #endif
 
 #ifndef PI

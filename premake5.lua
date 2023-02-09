@@ -28,4 +28,3 @@ project "ResourceManager"
     libdirs "Dependencies/fmt/%{cfg.system}/lib"
 
 	links { "fmt" }
-	linkoptions { "-static-libstdc++" } -- filesystem dll not linking
