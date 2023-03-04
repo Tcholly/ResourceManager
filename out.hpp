@@ -1,5 +1,6 @@
 // This file is auto generated, DO NOT MODIFY (pwease uwu)
 // PLATFORM: RAYLIB
+// SOURCE: test.txt
 #pragma once
 
 #include <string>
@@ -51,6 +52,11 @@ namespace Textures
 	} // namespace Filepaths
 
 } // namespace Textures
+
+namespace Included
+{
+	const int ASD = 1312;
+} // namespace Included
 
 namespace Globals
 {

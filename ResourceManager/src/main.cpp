@@ -66,6 +66,9 @@ struct Args
 	char** argv;
 };
 
+static std::string inputFile = "";
+static std::vector<std::string> includedFiles;
+
 std::string GetNextArg(Args& args)
 {
 	if (args.argc < 1)
@@ -88,7 +91,7 @@ std::string trim(const std::string& str)
 	return str.substr(first, (last - first + 1));
 }
 
-std::string GetOneLineContent(std::stringstream& ss)
+std::string GetOneLineContent(std::stringstream& ss, const std::string& filename)
 {
 	std::string result;
 	std::string line;
@@ -99,6 +102,8 @@ std::string GetOneLineContent(std::stringstream& ss)
 		std::stringstream finalStream(line);
 		bool inString = false;
 		bool inChar = false;
+		bool inPreprocessor = false;
+		std::string preprocessor = "";
 		char ch;
 		while (finalStream.get(ch))
 		{
@@ -108,15 +113,68 @@ std::string GetOneLineContent(std::stringstream& ss)
 				inChar = !inChar;
 			else if ((ch == ' ' || ch == '\t') && !inString &&!inChar)
 				continue;
-			else if (ch == '=' && !inString &&!inChar)
+			else if (ch == '=' && !inString && !inChar)
 				break;
+			else if (ch == '$' && !inString && !inChar)
+				inPreprocessor = true;
+
+			if (inPreprocessor)
+			{
+				preprocessor += ch;
+				continue;
+			}
 
 			result += ch;
+		}
+
+		if (inPreprocessor)
+		{
+			// Handle preprocessor
+
+			std::string includePreprocessor = "$include";
+			if (preprocessor.find(includePreprocessor) == 0)
+			{
+				std::string rest = preprocessor.substr(includePreprocessor.size());
+
+				if (rest.size() > 0)
+				{
+					if ((rest[0] == '\'' || rest[0] == '"') && (rest[rest.size() - 1] == '\'' || rest[rest.size() - 1] == '"'))
+					{
+						std::string includePath = rest.substr(1, rest.size() - 2);
+						std::filesystem::path filepath(filename);
+						filepath = filepath.remove_filename();
+						filepath = filepath.append(includePath);
+						std::ifstream includeFile(filepath);
+						if (!includeFile)
+						{
+							Logger::Error("Failed to include {}: {}", includePath, std::strerror(errno));
+							continue;
+						}
+
+						includedFiles.emplace_back(filepath.string());
+						
+						std::stringstream includess;
+						includess << includeFile.rdbuf();
+						includeFile.close();
+
+						result += GetOneLineContent(includess, filepath.string());
+
+						includess.clear();
+					}
+					else
+						Logger::Error("Include preprocessor's path must be enclosed in quotes: {}", rest); 
+				}
+				else
+					Logger::Error("Include preprocessor must be accompanied by a path");
+			}
+			else
+				Logger::Error("Unknown preprocessor: {}", preprocessor); 
 		}
 	}
 
 	return result;
 }
+
 
 std::pair<std::string, EndingType> ParseNext(std::stringstream& ss)
 {
@@ -261,6 +319,7 @@ void InitHppFile(std::ofstream& out, Namespace* root)
 {
 	out << "// This file is auto generated, DO NOT MODIFY (pwease uwu)\n";
 	out << "// PLATFORM: " << fmt::format("{}\n", PlatformManager::GetPlatform());
+	out << "// SOURCE: " << inputFile << "\n";
 	out << "#pragma once\n\n";
 
 	if (DoesNamespaceContainsType(root, "string"))
@@ -315,7 +374,6 @@ void ExportNamespaceToHpp(std::ofstream& out, Namespace* root, int level)
 
 	if (level > 0)
 		out << std::string(level - 1, '\t') << "} // namespace " << root->name << "\n\n";
-
 }
 
 
@@ -351,16 +409,23 @@ void Usage(std::string program_name)
 	std::cout << "                                   rl, raylib\n"; 
 }
 
+std::string GetVariable(const std::string& checkString, std::string line)
+{
+	if (line.find(checkString) != 0)
+		return "";
+
+	return line.substr(checkString.size());
+}
 
 int main(int argc, char** argv)
 {
 	Args args = {argc, argv};
 	std::string program = GetNextArg(args);
-	std::string file = GetNextArg(args);
+	inputFile= GetNextArg(args);
 
 	ScopeTimer mainTimer("The program took " CONSOLE_YELLOW "{}" CONSOLE_GREEN " seconds");
 
-	if (file == "-h" || file == "--help")
+	if (inputFile == "-h" || inputFile == "--help")
 	{
 		Usage(program);
 		exit(1);
@@ -416,72 +481,92 @@ int main(int argc, char** argv)
 		nextArg = GetNextArg(args);
 	}
 
-	if (file.empty())
+	if (inputFile.empty())
 	{
 		Logger::Error("Missing argument <FILE>");
 		Usage(program);
 		exit(1);
 	}
 
-	std::filesystem::path outPath(outputFile);
-	std::filesystem::path inPath(file);
-	if (std::filesystem::exists(outPath) && std::filesystem::exists(inPath))
-	{
-		auto outModifiedTime = std::filesystem::last_write_time(outPath);
-		auto inModifiedTime = std::filesystem::last_write_time(inPath);
-
-		if (outModifiedTime > inModifiedTime)
-		{
-			std::ifstream prevOutFile(outputFile);
-			if (!prevOutFile)
-			{
-				Logger::Warn("Failed to scan {}: {}", outputFile, strerror(errno));
-				Logger::Warn("Rebuilding {}", outputFile);
-				prevOutFile.close();
-			}
-			else
-			{
-				std::string line;
-				std::getline(prevOutFile, line);
-				std::getline(prevOutFile, line);
-				prevOutFile.close();
-
-				std::string check = "// PLATFORM: ";
-				if (line.find(check) != 0)
-				{
-					Logger::Warn("File {} has been modified, please do not modify", outputFile);
-					Logger::Warn("Rebuilding {}", outputFile);
-				}
-				else
-				{
-					std::string scannedPlatform = line.substr(check.size());
-					if (scannedPlatform == fmt::format("{}", PlatformManager::GetPlatform()))
-					{
-						Logger::Info("{} is up to date", file);
-						exit(0);
-					}
-				}
-
-			}
-		}
-	}
-
-
-	std::ifstream in(file);
+	std::ifstream in(inputFile);
 	if (!in)
 	{
-		Logger::Error("Failed to open {}: {}", file, strerror(errno));	
+		Logger::Error("Failed to open {}: {}", inputFile, strerror(errno));	
 		exit(1);
 	}
+
+	includedFiles.emplace_back(inputFile);
 
 	std::stringstream ss;
 	ss << in.rdbuf();
 	in.close();
 
-	std::string content = GetOneLineContent(ss);
+	std::string content = GetOneLineContent(ss, inputFile);
 
 	ss.str(std::string());
 	ss.clear();
+
+	// WARNING: Does not work if included file is changed
+	std::filesystem::path outPath(outputFile);
+	if (std::filesystem::exists(outPath))
+	{
+		bool isUpToDate = true;
+
+		std::ifstream prevOutFile(outputFile);
+		if (!prevOutFile)
+		{
+			Logger::Warn("Failed to scan {}: {}", outputFile, std::strerror(errno));
+			Logger::Warn("Rebuilding {}", outputFile);
+			prevOutFile.close();
+			isUpToDate = false;
+		}
+		else
+		{
+			std::string line;
+			std::getline(prevOutFile, line);
+			std::getline(prevOutFile, line);
+
+			std::string scannedPlatform = GetVariable("// PLATFORM: ", line);
+			std::getline(prevOutFile, line);
+			std::string scannedSource = GetVariable("// SOURCE: ", line);
+
+			prevOutFile.close();
+
+			if (scannedPlatform == "" || scannedSource == "")
+			{
+				Logger::Warn("File {} has been modified, please do not modify", outputFile);
+				Logger::Warn("Rebuilding {}", outputFile);
+				isUpToDate = false;
+			}
+			else
+			{
+				if (scannedPlatform != fmt::format("{}", PlatformManager::GetPlatform()) || scannedSource != inputFile)
+					isUpToDate = false;
+			}
+		}
+
+		auto outModifiedTime = std::filesystem::last_write_time(outPath);
+
+		for (auto inFile : includedFiles)
+		{
+			std::filesystem::path inPath(inFile);
+			if (!std::filesystem::exists(inPath))
+				isUpToDate = false;
+
+			auto inModifiedTime = std::filesystem::last_write_time(inPath);
+			if (outModifiedTime < inModifiedTime)
+				isUpToDate = false;
+		}
+
+		if (isUpToDate)
+		{
+			Logger::Info("{} is Up-To-Date", inputFile); 
+			exit(0);
+		}
+	}
+
+
+
 	ss.str(content);
 
 	std::cout << ss.str() << '\n';
@@ -496,14 +581,14 @@ int main(int argc, char** argv)
 	std::ofstream out(outputFile);
 	if (!out)
 	{
-		Logger::Error("Failed to open {}: {}", outputFile, strerror(errno));	
+		Logger::Error("Failed to open {}: {}", outputFile, std::strerror(errno));	
 		exit(1);
 	}
 
 	ExportNamespaceToHpp(out, root, 0);
 	out.close();
 
-	Logger::Info("Successfully exported {} to {}", file, outputFile);
+	Logger::Info("Successfully exported {} to {}", inputFile, outputFile);
 
 	delete root;
 }

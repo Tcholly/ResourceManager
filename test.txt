@@ -9,6 +9,8 @@ Textures
 	}
 }
 
+$include "testInclude.txt"
+
 Globals
 {
 	VEC : vector2f : { 0.0f, 0.2f};
